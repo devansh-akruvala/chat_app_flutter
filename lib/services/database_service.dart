@@ -76,4 +76,49 @@ class DatabaseService {
   getGroupMembers(String groupId) async {
     return groupCollection.doc(groupId).snapshots();
   }
+
+  searchGroupByName(String groupName) {
+    return groupCollection.where('groupName', isEqualTo: groupName).get();
+  }
+
+  Future<bool> isUserJoined(
+      String groupName, String groupId, String userName) async {
+    DocumentReference userDocumentReference = userCollection.doc(uid);
+    DocumentSnapshot documentSnapshot = await userDocumentReference.get();
+
+    List<dynamic> groups = await documentSnapshot['groups'];
+
+    if (groups.contains("${groupId}_$groupName")) {
+      return true;
+    }
+    return false;
+  }
+
+  // join or exit
+
+  Future troggleGroupJoinorExit(
+      String groupId, String userName, String groupName) async {
+    DocumentReference userDocumentRefrence = userCollection.doc(uid);
+    DocumentReference groupDocumentRefrence = groupCollection.doc(groupId);
+
+    DocumentSnapshot documentSnapshot = await userDocumentRefrence.get();
+    List<dynamic> groups = await documentSnapshot['groups'];
+
+    // if user has grp then remove them else join
+    if (groups.contains("${groupId}_$groupName")) {
+      userDocumentRefrence.update({
+        "groups": FieldValue.arrayRemove(["${groupId}_$groupName"]),
+      });
+      groupDocumentRefrence.update({
+        "members": FieldValue.arrayRemove(["${groupId}_$userName"]),
+      });
+    } else {
+      userDocumentRefrence.update({
+        "groups": FieldValue.arrayUnion(["${groupId}_$groupName"]),
+      });
+      groupDocumentRefrence.update({
+        "members": FieldValue.arrayUnion(["${groupId}_$userName"]),
+      });
+    }
+  }
 }

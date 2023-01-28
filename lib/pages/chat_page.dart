@@ -63,7 +63,7 @@ class _ChatPageState extends State<ChatPage> {
                         groupName: widget.groupName,
                         groupId: widget.groupId));
               },
-              icon: Icon(Icons.info))
+              icon: const Icon(Icons.info))
         ],
       ),
       body: Center(
