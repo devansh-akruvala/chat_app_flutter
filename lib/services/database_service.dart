@@ -43,6 +43,7 @@ class DatabaseService {
       "groupId": "",
       "recentMessage": "",
       "recentMessageSender": "",
+      "recentMessageTime": ""
     });
     //update the members
     await groupDocumentReference.update({
@@ -110,15 +111,24 @@ class DatabaseService {
         "groups": FieldValue.arrayRemove(["${groupId}_$groupName"]),
       });
       groupDocumentRefrence.update({
-        "members": FieldValue.arrayRemove(["${groupId}_$userName"]),
+        "members": FieldValue.arrayRemove(["${uid}_$userName"]),
       });
     } else {
       userDocumentRefrence.update({
         "groups": FieldValue.arrayUnion(["${groupId}_$groupName"]),
       });
       groupDocumentRefrence.update({
-        "members": FieldValue.arrayUnion(["${groupId}_$userName"]),
+        "members": FieldValue.arrayUnion(["${uid}_$userName"]),
       });
     }
+  }
+
+  sendMessage(String groupId, Map<String, dynamic> chatMessageData) async {
+    groupCollection.doc(groupId).collection("messages").add(chatMessageData);
+    groupCollection.doc(groupId).update({
+      "recentMessage": chatMessageData['message'],
+      "recentMessageSender": chatMessageData['sender'],
+      "recentMessageTime": chatMessageData['time'].toString(),
+    });
   }
 }
